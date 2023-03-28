@@ -9,6 +9,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const keys = require('../config/keys');
 const User = require('../models/User');
+const passport = require('passport');
+const _ = require('lodash')
 
 router.post('/users/register', (req, res) => {
     async function emailCheckExist() {
@@ -16,18 +18,26 @@ router.post('/users/register', (req, res) => {
             const user = await User.findOne({ email: req.body.email });
             if (user) {
                 return res.status(400).json({ email: 'Email already exists' });
-            } else {
+            }
+            else {
                 const newUser = new User({
-                    name: req.body.name,
                     email: req.body.email,
-                    password: req.body.password
+                    password: req.body.password,
+                    confirmPassword: req.body.confirmPassword,
+                    name: req.body.name
                 });
-
                 const salt = await bcrypt.genSalt(10);
                 const hash = await bcrypt.hash(newUser.password, salt);
                 newUser.password = hash;
                 const savedUser = await newUser.save();
-                res.json(savedUser);
+                const payload = {
+                    id: savedUser.id,
+                    name: savedUser.name
+                };
+                const token = await jwt.sign(payload, keys.secretOrKey, { expiresIn: 31556926 });
+                res.json({
+                    token: 'Bearer ' + token
+                });
             }
         } catch (error) {
             console.log(error);
@@ -54,7 +64,6 @@ router.post('/users/login', (req, res) => {
                 };
                 const token = await jwt.sign(payload, keys.secretOrKey, { expiresIn: 31556926 });
                 res.json({
-                    success: true,
                     token: 'Bearer ' + token
                 });
             } else {
@@ -68,5 +77,9 @@ router.post('/users/login', (req, res) => {
     emailNotFoundCheck()
 });
 
-module.exports = router;
+router.get('/users/me', [passport.authenticate("jwt", { session: false })], (req, res) => {
+    const newUser = _.pick(req.user, ['email', 'name']);
+    res.json({ user: newUser });
+});
 
+module.exports = router;

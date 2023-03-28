@@ -4,18 +4,19 @@ const express = require('express');
 const config = require('./config/db')
 const routes = require('./routes')
 
+const cors = require('cors')
+
 const PORT = 3001;
 
 const passport = require('passport');
-const users = require('./routes/users');
 const app = express();
 
 app.use(passport.initialize());
 require('./config/passport')(passport);
 
 app.use(bodyParser.json());
+app.use(cors());
 app.use('/', routes);
-
 
 mongoose.connect(config.url)
   .then(() => {
