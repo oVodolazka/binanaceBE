@@ -1,9 +1,5 @@
 module.exports = {
-  // 'parserOptions': {
-  //     'ecmaVersion': 2018,
-  // },
   'parser': '@babel/eslint-parser',
-  // 'parser': 'babel-eslint',},
   'extends': [
       'eslint:recommended',
       'plugin:react/recommended'
@@ -29,6 +25,3 @@ module.exports = {
       'es2021': true
     },
 }
-
-// // module.exports = config
-
