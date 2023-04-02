@@ -16,6 +16,16 @@ const UserSchema = new Schema({
   date: {
     type: Date,
     default: Date.now
+  },
+  binanceKeys: {
+    apiKey: {
+      type: String,
+      required: false
+    },
+    secretKey: {
+      type: String,
+      required: false
+    }
   }
 });
 module.exports = User = mongoose.model('users', UserSchema);
