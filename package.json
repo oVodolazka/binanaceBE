@@ -11,8 +11,6 @@
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
-    "binance-api-node": "^0.12.4",
-    "body-parser": "^1.20.2",
     "concurrently": "^7.6.0",
     "cors": "^2.8.5",
     "eslint": "^8.36.0",
@@ -40,7 +38,7 @@
       "es6": true
     },
     "rules": {
-      "no-undef":[
+      "no-undef": [
         "off"
       ],
       "brace-style": [

@@ -18,7 +18,7 @@ module.exports = {
       'react/prop-types': ['off'],
       'react/react-in-jsx-scope': 'off',
       'no-dupe-keys':'warn',
-      'no-undef':'off',
+      'no-undef':'warn',
   },
   'env': {
       'es6': true,

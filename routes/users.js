@@ -78,7 +78,7 @@ router.post('/users/login', (req, res) => {
 });
 
 router.get('/users/me', [passport.authenticate("jwt", { session: false })], async (req, res) => {
-    const binanceKeysExist = req.user.binanceKeys.apiKey && req.user.binanceKeys.secretKey ? true : false
+    const binanceKeysExist = req.user.binanceKeys.apiKey && req.user.binanceKeys.secretKey
     const newUser = _.pick(req.user, ['email', 'name']);
     res.json({ user: { ...newUser, binanceKeysExist } })
 });
