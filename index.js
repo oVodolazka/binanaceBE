@@ -27,4 +27,3 @@ mongoose.connect(config.url)
   .catch((err) => {
     console.log('A error has been occurred while connecting to database.', err);
   })
-
