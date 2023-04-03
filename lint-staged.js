@@ -1,5 +1,5 @@
 module.exports = {
     '*.{js,jsx,ts,tsx}': [
-        'eslint',
+        'eslint --max-warnings=10',
     ]
 }

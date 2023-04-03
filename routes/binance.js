@@ -4,9 +4,8 @@ const passport = require('passport');
 
 router.post('/binance/integration', [passport.authenticate("jwt", { session: false })], async (req, res) => {
     const user = req.user
-    user.binanceKeys.apiKey = req.body.apiKey;
-    user.binanceKeys.secretKey = req.body.secretKey;
-    // const { apiKey, secretKey } = req.body
+    const { apiKey, secretKey } = req.body;
+    user.binanceKeys = { apiKey, secretKey }
     const savedUser = await user.save();
     res.json(savedUser);
 });
