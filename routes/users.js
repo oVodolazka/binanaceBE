@@ -13,7 +13,7 @@ const passport = require('passport');
 const _ = require('lodash')
 
 router.post('/users/register', (req, res) => {
-    async function emailCheckExist() {
+    const emailCheckExist = async() => {
         try {
             const user = await User.findOne({ email: req.body.email });
             if (user) {
@@ -50,7 +50,7 @@ router.post('/users/register', (req, res) => {
 router.post('/users/login', (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
-    async function emailNotFoundCheck() {
+    const emailNotFoundCheck = async () => {
         try {
             const user = await User.findOne({ email })
             if (!user) {
@@ -78,7 +78,7 @@ router.post('/users/login', (req, res) => {
 });
 
 router.get('/users/me', [passport.authenticate("jwt", { session: false })], async (req, res) => {
-    const binanceKeysExist = req.user.binanceKeys.apiKey && req.user.binanceKeys.secretKey
+    const binanceKeysExist = req.user.binanceKeys.apiKey && req.user.binanceKeys.secretKey ? true : false
     const newUser = _.pick(req.user, ['email', 'name']);
     res.json({ user: { ...newUser, binanceKeysExist } })
 });
