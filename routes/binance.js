@@ -63,8 +63,8 @@ router.get('/binance/getcoins', [passport.authenticate("jwt", { session: false }
     binanceAxiosConfig = { ...binanceAxiosConfig, method: 'get', url: `https://api.binance.com/sapi/v1/capital/config/getall?&timestamp=${timestamp}&signature=${signature}`, }
 
     const { data } = await axios(binanceAxiosConfig);
-    let result = data
-      .filter(item => item.withdrawAllEnable == true && item.networkList[0].name !== 'FIAT')
+    const result = data
+      .filter(item => item.withdrawAllEnable && item.networkList[0].name !== 'FIAT')
       .map(({ coin: ticker, name: label, networkList }) => ({
         ticker,
         label,
