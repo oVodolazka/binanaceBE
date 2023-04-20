@@ -1,4 +1,4 @@
-const binanceAuth = (req, next) => {
+const binanceAuth = (req, res, next) => {
     const { apiKey } = req.user.binanceKeys
     const config = {
         headers: {
@@ -10,4 +10,4 @@ const binanceAuth = (req, next) => {
     next();
 };
 
-module.exports = binanceAuth
+module.exports = binanceAuth 

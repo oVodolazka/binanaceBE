@@ -73,8 +73,8 @@ router.get('/binance/getcoins', [passport.authenticate("jwt", { session: false }
       .filter(item => {
         const anyMemoRegex = item.networkList.some(network => {
           if (network.specialTips) {
-            const upperCase = network.specialTips.toUpperCase()
-            return upperCase.includes('MEMO') || upperCase.includes('MSG')
+            const lowerCase = network.specialTips.toLowerCase()
+            return lowerCase.includes('MEMO') || lowerCase.includes('MSG')
           }
         });
         return !anyMemoRegex
