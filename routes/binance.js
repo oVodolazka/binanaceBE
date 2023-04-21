@@ -44,7 +44,7 @@ router.get('/binance/address', [passport.authenticate("jwt", { session: false })
     const timestamp = Date.now()
     const queryString = `coin=${coin}&timestamp=${timestamp}&network=${network}`
     const signature = CryptoJS.HmacSHA256(queryString, apiSecret).toString();
-    binanceAxiosConfig = { ...binanceAxiosConfig, method: 'get', url: `https://api.binance.com/sapi/v1/capital/deposit/address?coin=${coin}&timestamp=${timestamp}&signature=${signature}&network=${network}` }
+    binanceAxiosConfig = { ...binanceAxiosConfig, method: 'get', url: `https://api.binance.com/sapi/v1/capital/deposit/address?${queryString}&signature=${signature}&` }
     const response = await axios(binanceAxiosConfig);
     res.json(response.data)
   } catch (error) {
