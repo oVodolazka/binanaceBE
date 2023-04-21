@@ -1,25 +1,105 @@
 const express = require('express')
 const router = express.Router();
 const passport = require('passport');
+const axios = require('axios');
+const CryptoJS = require('crypto-js');
+const binanceAuth = require('../middlewares');
 
 router.post('/binance/integration', [passport.authenticate("jwt", { session: false })], async (req, res) => {
-    const user = req.user
-    const { apiKey, secretKey } = req.body;
-    user.binanceKeys = { apiKey, secretKey }
-    const savedUser = await user.save();
-    res.json(savedUser);
+  const { user } = req
+  const { apiKey, secretKey } = req.body;
+  user.binanceKeys = { apiKey, secretKey }
+  const savedUser = await user.save();
+  res.json(savedUser);
 });
 
-router.delete('/binance/integration', [passport.authenticate("jwt", { session: false })], async (req, res) => {
-    try {
-        const user = req.user
-        user.binanceKeys = undefined
-        const savedUser = await user.save();
-        res.json(savedUser);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Failed to delete Binance keys' });
-    }
+// router.get('/binance/depositHistory', [passport.authenticate("jwt", { session: false })], async (req, res) => {
+//   const { apiKey, secretKey: apiSecret } = req.user.binanceKeys
+//   try {
+  //let { binanceDefaultAxiosConfig: binanceAxiosConfig } = req; переделать
+//     const timestamp = Date.now();
+//     const queryString = `&timestamp=${timestamp}&startTime=1657411200000&endTime=1662768000000`
+//     const signature = CryptoJS.HmacSHA256(queryString, apiSecret).toString();
+//     const config = {
+//       method: 'get',
+//       url: `https://api.binance.com/sapi/v1/capital/deposit/hisrec?&timestamp=${timestamp}&signature=${signature}&startTime=1657411200000&endTime=1662768000000`,
+//       headers: {
+//         'Content-Type': 'application/json',
+//         'X-MBX-APIKEY': apiKey
+//       }
+//     };
+//     const { data } = await axios(config);
+//     res.json(data);
+//   } catch (error) {
+//     console.error(error, 'error');
+//   }
+// })
+
+
+router.get('/binance/address', [passport.authenticate("jwt", { session: false }), binanceAuth], async (req, res) => {
+  try {
+    let { binanceDefaultAxiosConfig: binanceAxiosConfig } = req;
+    const { coin, network } = req.query;
+    const { secretKey: apiSecret } = req.user.binanceKeys
+    const timestamp = Date.now()
+    const queryString = `coin=${coin}&timestamp=${timestamp}&network=${network}`
+    const signature = CryptoJS.HmacSHA256(queryString, apiSecret).toString();
+    binanceAxiosConfig = { ...binanceAxiosConfig, method: 'get', url: `https://api.binance.com/sapi/v1/capital/deposit/address?${queryString}&signature=${signature}&` }
+    const response = await axios(binanceAxiosConfig);
+    res.json(response.data)
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error.message)
+  }
+})
+
+router.get('/binance/getcoins', [passport.authenticate("jwt", { session: false }), binanceAuth], async (req, res) => {
+  try {
+    let { binanceDefaultAxiosConfig: binanceAxiosConfig } = req;
+    const { secretKey: apiSecret } = req.user.binanceKeys
+    const timestamp = Date.now()
+    const queryString = `&timestamp=${timestamp}`
+    const signature = CryptoJS.HmacSHA256(queryString, apiSecret).toString();
+    binanceAxiosConfig = { ...binanceAxiosConfig, method: 'get', url: `https://api.binance.com/sapi/v1/capital/config/getall?&timestamp=${timestamp}&signature=${signature}`, }
+
+    const { data } = await axios(binanceAxiosConfig);
+    const result = data
+      .filter(item => item.withdrawAllEnable && item.networkList[0].name !== 'FIAT')
+      .map(({ coin: ticker, name: label, networkList }) => ({
+        ticker,
+        label,
+        networkList
+      }))
+      .filter(item => {
+        const anyMemoRegex = item.networkList.some(network => {
+          if (network.specialTips) {
+            const lowerCase = network.specialTips.toLowerCase()
+            return lowerCase.includes('MEMO') || lowerCase.includes('MSG')
+          }
+        });
+        return !anyMemoRegex
+      })
+      .map(({ networkList, ...rest }) => ({
+        ...rest,
+        networkList: networkList.map(({ network, coin: ticker, name: label, }) => ({ network, ticker, label })),
+      }))
+    res.json(result)
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error.message)
+  }
+})
+
+router.delete('/binance/integration', [passport.authenticate("jwt", { session: false }),], async (req, res) => {
+  try {
+    const user = req.user
+    delete user.binanceKeys
+    const savedUser = await user.save();
+    res.json(savedUser);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to delete Binance keys' });
+  }
 });
 
 module.exports = router;
