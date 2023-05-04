@@ -4,6 +4,45 @@ const passport = require('passport');
 const axios = require('axios');
 const CryptoJS = require('crypto-js');
 const binanceAuth = require('../middlewares');
+const jwt = require("jsonwebtoken")
+
+router.get(
+  "/auth/google",
+  passport.authenticate("google", { scope: ["email", "profile"] })
+);
+
+router.get(
+  "/auth/google/callback",
+  passport.authenticate("google", { session: false }),
+  (req, res) => {
+    jwt.sign(
+      { user: req.user },
+      "secretKey",
+      { expiresIn: "1h" },
+      (err, token) => {
+        if (err) {
+          return res.json({
+            token: null,
+          });
+        }
+        res.json({
+          token,
+        });
+      }
+    );
+  }
+);
+// router.get("/profile", (req, res) => {
+//   console.log(req);
+//   res.send("Welcome");
+// });
+router.get(
+  "/profile",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => {
+    res.send("Welcome");
+  }
+);
 
 router.post('/binance/integration', [passport.authenticate("jwt", { session: false })], async (req, res) => {
   const { user } = req
@@ -13,28 +52,23 @@ router.post('/binance/integration', [passport.authenticate("jwt", { session: fal
   res.json(savedUser);
 });
 
-// router.get('/binance/depositHistory', [passport.authenticate("jwt", { session: false })], async (req, res) => {
-//   const { apiKey, secretKey: apiSecret } = req.user.binanceKeys
-//   try {
-  //let { binanceDefaultAxiosConfig: binanceAxiosConfig } = req; переделать
-//     const timestamp = Date.now();
-//     const queryString = `&timestamp=${timestamp}&startTime=1657411200000&endTime=1662768000000`
-//     const signature = CryptoJS.HmacSHA256(queryString, apiSecret).toString();
-//     const config = {
-//       method: 'get',
-//       url: `https://api.binance.com/sapi/v1/capital/deposit/hisrec?&timestamp=${timestamp}&signature=${signature}&startTime=1657411200000&endTime=1662768000000`,
-//       headers: {
-//         'Content-Type': 'application/json',
-//         'X-MBX-APIKEY': apiKey
-//       }
-//     };
-//     const { data } = await axios(config);
-//     res.json(data);
-//   } catch (error) {
-//     console.error(error, 'error');
-//   }
-// })
-
+router.get('/binance/depositHistory', [binanceAuth], async (req, res) => {
+  // router.get('/binance/depositHistory', [passport.authenticate("jwt", { session: false }), binanceAuth], async (req, res) => {
+  const { start, end } = req.query
+  try {
+    let { binanceDefaultAxiosConfig: binanceAxiosConfig } = req;
+    // const { secretKey: apiSecret } = req.user.binanceKeys
+    const apiSecret = 'UiJtPSquLzJvmSwFOKap4u0eIWzznJABQItkrYoKDuUYtIh2C5a8kDIYf4NGkg3i'
+    const timestamp = Date.now()
+    const queryString = `&timestamp=${timestamp}&startTime=${start}&endTime=${end}`
+    const signature = CryptoJS.HmacSHA256(queryString, apiSecret).toString();
+    binanceAxiosConfig = { ...binanceAxiosConfig, method: 'get', url: `https://api.binance.com/sapi/v1/capital/deposit/hisrec?${queryString}&signature=${signature}&` }
+    const response = await axios(binanceAxiosConfig);
+    res.json(response.data)
+  } catch (error) {
+    console.error(error, 'error');
+  }
+})
 
 router.get('/binance/address', [passport.authenticate("jwt", { session: false }), binanceAuth], async (req, res) => {
   try {
