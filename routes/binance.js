@@ -5,37 +5,6 @@ const axios = require('axios');
 const CryptoJS = require('crypto-js');
 const binanceAuth = require('../middlewares');
 
-// const jwt = require("jsonwebtoken")
-// router.get(
-//   "/auth/google",
-//   passport.authenticate("google", { scope: ["email", "profile"] })
-// );
-
-// router.get(
-//   "/auth/google/callback",
-//   passport.authenticate("google", { session: false }),
-//   (req, res) => {
-//     jwt.sign(
-//       { user: req.user },
-//       "secretKey",
-//       { expiresIn: "1h" },
-//       (err, token) => {
-//         if (err) {
-//           return res.json({
-//             token: null,
-//           });
-//         }
-//         res.json({
-//           token,
-//         });
-//       }
-//     );
-//   }
-// );
-// router.get("/profile", (req, res) => {
-//   console.log(req);
-//   res.send("Welcome");
-// });
 router.get(
   "/profile",
   passport.authenticate("jwt", { session: false }),

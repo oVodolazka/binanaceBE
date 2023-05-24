@@ -12,7 +12,6 @@ const app = express();
 
 app.use(passport.initialize());
 require('./config/passport')(passport)
-// require('./middlewares/passportConfig')(passport);
 
 app.use(bodyParser.json());
 app.use(cors());
