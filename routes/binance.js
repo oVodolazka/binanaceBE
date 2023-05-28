@@ -4,6 +4,7 @@ const passport = require('passport');
 const axios = require('axios');
 const CryptoJS = require('crypto-js');
 const binanceAuth = require('../middlewares');
+const _ = require('lodash')
 
 router.get(
   "/profile",
@@ -35,7 +36,32 @@ router.get('/binance/depositHistory', [passport.authenticate("jwt", { session: f
     const signature = CryptoJS.HmacSHA256(queryString, apiSecret).toString();
     binanceAxiosConfig = { ...binanceAxiosConfig, method: 'get', url: `https://api.binance.com/sapi/v1/capital/deposit/hisrec?${queryString}&signature=${signature}&` }
     const response = await axios(binanceAxiosConfig);
-    res.json(response.data)
+    const result = response.data.map(item => _.pick(item, ['id', 'coin', 'network', 'amount', 'insertTime']))
+    result.map(item => {
+      const date = new Date(item.insertTime)
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      const formattedDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+      item.insertTime = formattedDate
+    })
+    res.json(result)
+  } catch (error) {
+    res.status(500).send(error.response.data.msg)
+  }
+})
+
+router.get('/binance/withdrawHistory', [passport.authenticate("jwt", { session: false }), binanceAuth], async (req, res) => {
+  try {
+    let { binanceDefaultAxiosConfig: binanceAxiosConfig } = req;
+    const { secretKey: apiSecret } = req.user.binanceKeys
+    const timestamp = Date.now()
+    const queryString = `recvWindow=6000&timestamp=${timestamp}`
+    const signature = CryptoJS.HmacSHA256(queryString, apiSecret).toString();
+    binanceAxiosConfig = { ...binanceAxiosConfig, method: 'get', url: `https://api.binance.com/sapi/v1/capital/withdraw/history?${queryString}&signature=${signature}` }
+    const response = await axios(binanceAxiosConfig);
+    const result = response.data.map(item => _.pick(item, ['id', 'coin', 'network', 'amount', 'completeTime', 'transactionFee']))
+    res.json(result)
   } catch (error) {
     res.status(500).send(error.response.data.msg)
   }
