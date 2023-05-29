@@ -22,7 +22,6 @@ router.post('/users/register', async (req, res) => {
             const newUser = new User({
                 email: req.body.email,
                 password: req.body.password,
-                confirmPassword: req.body.confirmPassword,
                 name: req.body.name,
             });
             const salt = await bcrypt.genSalt(10);
@@ -72,7 +71,7 @@ router.post('/users/login', async (req, res) => {
 });
 
 router.get('/users/me', [passport.authenticate("jwt", { session: false })], async (req, res) => {
-    const binanceKeysExist = req.user.binanceKeys.apiKey && req.user.binanceKeys.secretKey
+    const binanceKeysExist = !!(req.user.binanceKeys.apiKey && req.user.binanceKeys.secretKey)
     const newUser = _.pick(req.user, ['email', 'name']);
     res.json({ user: { ...newUser, binanceKeysExist } })
 });

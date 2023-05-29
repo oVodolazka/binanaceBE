@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const express = require('express');
 const config = require('./config/db')
 const routes = require('./routes')
-
 const cors = require('cors')
 
 const PORT = 3001;
@@ -12,7 +11,7 @@ const passport = require('passport');
 const app = express();
 
 app.use(passport.initialize());
-require('./config/passport')(passport);
+require('./config/passport')(passport)
 
 app.use(bodyParser.json());
 app.use(cors());

@@ -4,37 +4,63 @@ const passport = require('passport');
 const axios = require('axios');
 const CryptoJS = require('crypto-js');
 const binanceAuth = require('../middlewares');
+const _ = require('lodash')
 
 router.post('/binance/integration', [passport.authenticate("jwt", { session: false })], async (req, res) => {
-  const { user } = req
-  const { apiKey, secretKey } = req.body;
-  user.binanceKeys = { apiKey, secretKey }
-  const savedUser = await user.save();
-  res.json(savedUser);
+  try {
+    const { user } = req
+    const { apiKey, secretKey } = req.body;
+    user.binanceKeys = { apiKey, secretKey }
+    const savedUser = await user.save();
+    res.json(savedUser);
+  } catch (error) {
+    res.status(500).send('Something went wrong')
+  }
 });
 
-// router.get('/binance/depositHistory', [passport.authenticate("jwt", { session: false })], async (req, res) => {
-//   const { apiKey, secretKey: apiSecret } = req.user.binanceKeys
-//   try {
-  //let { binanceDefaultAxiosConfig: binanceAxiosConfig } = req; переделать
-//     const timestamp = Date.now();
-//     const queryString = `&timestamp=${timestamp}&startTime=1657411200000&endTime=1662768000000`
-//     const signature = CryptoJS.HmacSHA256(queryString, apiSecret).toString();
-//     const config = {
-//       method: 'get',
-//       url: `https://api.binance.com/sapi/v1/capital/deposit/hisrec?&timestamp=${timestamp}&signature=${signature}&startTime=1657411200000&endTime=1662768000000`,
-//       headers: {
-//         'Content-Type': 'application/json',
-//         'X-MBX-APIKEY': apiKey
-//       }
-//     };
-//     const { data } = await axios(config);
-//     res.json(data);
-//   } catch (error) {
-//     console.error(error, 'error');
-//   }
-// })
+router.get('/binance/depositHistory', [passport.authenticate("jwt", { session: false }), binanceAuth], async (req, res) => {
+  try {
+    const { start, end } = req.query
+    let { binanceDefaultAxiosConfig: binanceAxiosConfig } = req;
+    const { secretKey: apiSecret } = req.user.binanceKeys
+    const timestamp = Date.now()
+    const queryString = `&timestamp=${timestamp}&startTime=${start}&endTime=${end}`
+    const signature = CryptoJS.HmacSHA256(queryString, apiSecret).toString();
+    binanceAxiosConfig = { ...binanceAxiosConfig, method: 'get', url: `https://api.binance.com/sapi/v1/capital/deposit/hisrec?${queryString}&signature=${signature}&` }
+    const response = await axios(binanceAxiosConfig);
+    const result = response.data.map(item => _.pick(item, ['id', 'coin', 'network', 'amount', 'insertTime']))
+    result.map(item => {
+      const date = new Date(item.insertTime)
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      const formattedDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+      item.insertTime = formattedDate
+    })
+    res.json(result)
+  } catch (error) {
+    const message = error && error.response && error.response.data && error.response.data.msg ? error.response.data.msg : 'Unknown error'
+    res.status(500).send(message)
+  }
+})
 
+router.get('/binance/withdrawHistory', [passport.authenticate("jwt", { session: false }), binanceAuth], async (req, res) => {
+  try {
+    let { binanceDefaultAxiosConfig: binanceAxiosConfig } = req;
+    const { secretKey: apiSecret } = req.user.binanceKeys
+    const timestamp = Date.now()
+    const queryString = `recvWindow=6000&timestamp=${timestamp}`
+    const signature = CryptoJS.HmacSHA256(queryString, apiSecret).toString();
+    binanceAxiosConfig = { ...binanceAxiosConfig, method: 'get', url: `https://api.binance.com/sapi/v1/capital/withdraw/history?${queryString}&signature=${signature}` }
+    const response = await axios(binanceAxiosConfig);
+    const result = response.data.map(item => _.pick(item, ['id', 'coin', 'network', 'amount', 'completeTime', 'transactionFee']))
+    res.json(result)
+  } catch (error) {
+    console.log(error)
+    const message = error && error.response && error.response.data && error.response.data.msg ? error.response.data.msg : 'Unknown error'
+    res.status(500).send(message)
+  }
+})
 
 router.get('/binance/address', [passport.authenticate("jwt", { session: false }), binanceAuth], async (req, res) => {
   try {
@@ -48,7 +74,6 @@ router.get('/binance/address', [passport.authenticate("jwt", { session: false })
     const response = await axios(binanceAxiosConfig);
     res.json(response.data)
   } catch (error) {
-    console.error(error);
     res.status(500).send(error.message)
   }
 })
@@ -60,8 +85,7 @@ router.get('/binance/getcoins', [passport.authenticate("jwt", { session: false }
     const timestamp = Date.now()
     const queryString = `&timestamp=${timestamp}`
     const signature = CryptoJS.HmacSHA256(queryString, apiSecret).toString();
-    binanceAxiosConfig = { ...binanceAxiosConfig, method: 'get', url: `https://api.binance.com/sapi/v1/capital/config/getall?&timestamp=${timestamp}&signature=${signature}`, }
-
+    binanceAxiosConfig = { ...binanceAxiosConfig, method: 'get', url: `https://api.binance.com/sapi/v1/capital/config/getall?&timestamp=${timestamp}&signature=${signature}` }
     const { data } = await axios(binanceAxiosConfig);
     const result = data
       .filter(item => item.withdrawAllEnable && item.networkList[0].name !== 'FIAT')
@@ -85,9 +109,8 @@ router.get('/binance/getcoins', [passport.authenticate("jwt", { session: false }
       }))
     res.json(result)
   } catch (error) {
-    console.error(error);
-    res.status(500).send(error.message)
-  }
+    const message = error && error.response && error.response.data && error.response.data.msg ? error.response.data.msg : 'Unknown error'
+    res.status(500).send(message)  }
 })
 
 router.delete('/binance/integration', [passport.authenticate("jwt", { session: false }),], async (req, res) => {
