@@ -6,14 +6,6 @@ const CryptoJS = require('crypto-js');
 const binanceAuth = require('../middlewares');
 const _ = require('lodash')
 
-router.get(
-  "/profile",
-  passport.authenticate("jwt", { session: false }),
-  (req, res) => {
-    res.send("Welcome");
-  }
-);
-
 router.post('/binance/integration', [passport.authenticate("jwt", { session: false })], async (req, res) => {
   try {
     const { user } = req
@@ -22,13 +14,13 @@ router.post('/binance/integration', [passport.authenticate("jwt", { session: fal
     const savedUser = await user.save();
     res.json(savedUser);
   } catch (error) {
-    console.log(error, error.message)
+    res.status(500).send('Something went wrong')
   }
 });
 
 router.get('/binance/depositHistory', [passport.authenticate("jwt", { session: false }), binanceAuth], async (req, res) => {
-  const { start, end } = req.query
   try {
+    const { start, end } = req.query
     let { binanceDefaultAxiosConfig: binanceAxiosConfig } = req;
     const { secretKey: apiSecret } = req.user.binanceKeys
     const timestamp = Date.now()
@@ -47,7 +39,8 @@ router.get('/binance/depositHistory', [passport.authenticate("jwt", { session: f
     })
     res.json(result)
   } catch (error) {
-    res.status(500).send(error.response.data.msg)
+    const message = error && error.response && error.response.data && error.response.data.msg ? error.response.data.msg : 'Unknown error'
+    res.status(500).send(message)
   }
 })
 
@@ -63,7 +56,9 @@ router.get('/binance/withdrawHistory', [passport.authenticate("jwt", { session: 
     const result = response.data.map(item => _.pick(item, ['id', 'coin', 'network', 'amount', 'completeTime', 'transactionFee']))
     res.json(result)
   } catch (error) {
-    res.status(500).send(error.response.data.msg)
+    console.log(error)
+    const message = error && error.response && error.response.data && error.response.data.msg ? error.response.data.msg : 'Unknown error'
+    res.status(500).send(message)
   }
 })
 
@@ -90,7 +85,7 @@ router.get('/binance/getcoins', [passport.authenticate("jwt", { session: false }
     const timestamp = Date.now()
     const queryString = `&timestamp=${timestamp}`
     const signature = CryptoJS.HmacSHA256(queryString, apiSecret).toString();
-    binanceAxiosConfig = { ...binanceAxiosConfig, method: 'get', url: `https://api.binance.com/sapi/v1/capital/config/getall?&timestamp=${timestamp}&signature=${signature}`}
+    binanceAxiosConfig = { ...binanceAxiosConfig, method: 'get', url: `https://api.binance.com/sapi/v1/capital/config/getall?&timestamp=${timestamp}&signature=${signature}` }
     const { data } = await axios(binanceAxiosConfig);
     const result = data
       .filter(item => item.withdrawAllEnable && item.networkList[0].name !== 'FIAT')
@@ -114,9 +109,8 @@ router.get('/binance/getcoins', [passport.authenticate("jwt", { session: false }
       }))
     res.json(result)
   } catch (error) {
-    console.error(error);
-    res.status(500).send(error.message)
-  }
+    const message = error && error.response && error.response.data && error.response.data.msg ? error.response.data.msg : 'Unknown error'
+    res.status(500).send(message)  }
 })
 
 router.delete('/binance/integration', [passport.authenticate("jwt", { session: false }),], async (req, res) => {
