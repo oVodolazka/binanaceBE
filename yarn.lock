@@ -1496,11 +1496,6 @@ functions-have-names@^1.2.2:
   resolved "https://registry.yarnpkg.com/functions-have-names/-/functions-have-names-1.2.3.tgz#0404fe4ee2ba2f607f0e0ec3c80bae994133b834"
   integrity sha512-xckBUXyTIqT97tq2x2AMb+g163b5JFysYk0x4qxNFwbfQkmNZoiRHb6sPzI9/QV33WeuvVYBUIiD4NzNIyqaRQ==
 
-generaterr@^1.5.0:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/generaterr/-/generaterr-1.5.0.tgz#b0ceb6cc5164df2a061338cc340a8615395c52fc"
-  integrity sha512-JgcGRv2yUKeboLvvNrq9Bm90P4iJBu7/vd5wSLYqMG5GJ6SxZT46LAAkMfNhQ+EK3jzC+cRBm7P8aUWYyphgcQ==
-
 gensync@^1.0.0-beta.2:
   version "1.0.0-beta.2"
   resolved "https://registry.yarnpkg.com/gensync/-/gensync-1.0.0-beta.2.tgz#32a6ee76c3d7f52d46b2b1ae5d93fea8580a25e0"
@@ -2221,11 +2216,6 @@ mongodb@5.1.0:
   optionalDependencies:
     saslprep "^1.0.3"
 
-mongoose-findorcreate@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/mongoose-findorcreate/-/mongoose-findorcreate-4.0.0.tgz#3172ca1100197620f362eb2fbb90f1cb27924da7"
-  integrity sha512-wi0vrTmazWBeZn8wHVdb8NEa+ZrAbnmfI8QltnFeIgvC33VlnooapvPSk21W22IEhs0vZ0cBz0MmXcc7eTTSZQ==
-
 mongoose@^7.0.1:
   version "7.0.1"
   resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-7.0.1.tgz#9afc737d10b3920c2c9b77ac5ac77fd6ff828d3d"
@@ -2462,13 +2452,6 @@ passport-google-oauth20@^2.0.0:
   dependencies:
     passport-oauth2 "1.x.x"
 
-passport-google-oauth2@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/passport-google-oauth2/-/passport-google-oauth2-0.2.0.tgz#fc9ea59e7091f02e24fd16d6be9257ea982ebbc3"
-  integrity sha512-62EdPtbfVdc55nIXi0p1WOa/fFMM8v/M8uQGnbcXA4OexZWCnfsEi3wo2buag+Is5oqpuHzOtI64JpHk0Xi5RQ==
-  dependencies:
-    passport-oauth2 "^1.1.2"
-
 passport-jwt@^4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/passport-jwt/-/passport-jwt-4.0.1.tgz#c443795eff322c38d173faa0a3c481479646ec3d"
@@ -2477,23 +2460,7 @@ passport-jwt@^4.0.1:
     jsonwebtoken "^9.0.0"
     passport-strategy "^1.0.0"
 
-passport-local-mongoose@^8.0.0:
-  version "8.0.0"
-  resolved "https://registry.yarnpkg.com/passport-local-mongoose/-/passport-local-mongoose-8.0.0.tgz#1dc5991fbe7063ee32336f7d0f674ab5437425d5"
-  integrity sha512-jgfN/B0j11WT5f96QlL5EBvxbIwmzd+tbwPzG1Vk8hzDOF68jrch5M+NFvrHjWjb3lfAU0DkxKmNRT9BjFZysQ==
-  dependencies:
-    generaterr "^1.5.0"
-    passport-local "^1.0.0"
-    scmp "^2.1.0"
-
-passport-local@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/passport-local/-/passport-local-1.0.0.tgz#1fe63268c92e75606626437e3b906662c15ba6ee"
-  integrity sha512-9wCE6qKznvf9mQYYbgJ3sVOHmCWoUNMVFoZzNoznmISbhnNNPhN9xfY3sLmScHMetEJeoY7CXwfhCe7argfQow==
-  dependencies:
-    passport-strategy "1.x.x"
-
-passport-oauth2@1.x.x, passport-oauth2@^1.1.2:
+passport-oauth2@1.x.x:
   version "1.7.0"
   resolved "https://registry.yarnpkg.com/passport-oauth2/-/passport-oauth2-1.7.0.tgz#5c4766c8531ac45ffe9ec2c09de9809e2c841fc4"
   integrity sha512-j2gf34szdTF2Onw3+76alNnaAExlUmHvkc7cL+cmaS5NzHzDP/BvFHJruueQ9XAeNOdpI+CH+PWid8RA7KCwAQ==
@@ -2788,11 +2755,6 @@ saslprep@^1.0.3:
   integrity sha512-/MY/PEMbk2SuY5sScONwhUDsV2p77Znkb/q3nSVstq/yQzYJOH/Azh29p9oJLsl3LnQwSvZDKagDGBsBwSooag==
   dependencies:
     sparse-bitfield "^3.0.3"
-
-scmp@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/scmp/-/scmp-2.1.0.tgz#37b8e197c425bdeb570ab91cc356b311a11f9c9a"
-  integrity sha512-o/mRQGk9Rcer/jEEw/yw4mwo3EU/NvYvp577/Btqrym9Qy5/MdWGBqipbALgd2lrdWTJ5/gqDusxfnQBxOxT2Q==
 
 semver@^6.3.0:
   version "6.3.0"
