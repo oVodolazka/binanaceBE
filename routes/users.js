@@ -76,4 +76,46 @@ router.get('/users/me', [passport.authenticate("jwt", { session: false })], asyn
     res.json({ user: { ...newUser, binanceKeysExist } })
 });
 
+router.get("/login/success", async (req, res) => {
+    const { name, email } = req.user._json
+    const user = await User.findOne({ email })
+    if (user) {
+        const id = user._id
+        const payload = {
+            id: id.toString(),
+            name: name
+        };
+        const token = await jwt.sign(payload, keys.secretOrKey, { expiresIn: 31556926 });
+        res.status(200).json({
+            token: 'Bearer ' + token
+        })
+    }
+    else {
+        const newUser = new User({
+            email: email,
+            name: name,
+        });
+        const savedUser = await newUser.save();
+        const payload = {
+            id: savedUser.id,
+            name: savedUser.name
+        };
+        const token = await jwt.sign(payload, keys.secretOrKey, { expiresIn: 31556926 });
+        res.status(200).json({
+            token: 'Bearer ' + token
+        });
+    }
+})
+
+router.get("/login/failed", (res) => {
+    res.status(401).json({
+        success: false,
+        message: "failure",
+    });
+});
+
+router.get("/logout", (req) => {
+    req.logout();
+});
+
 module.exports = router;
