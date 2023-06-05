@@ -6,7 +6,7 @@ const CryptoJS = require('crypto-js');
 const binanceAuth = require('../middlewares');
 const _ = require('lodash')
 
-router.post('/binance/integration', [passport.authenticate("jwt", { session: false })], async (req, res) => {
+router.post('/binance/integration', [passport.authenticate('jwt', { session: false })], async (req, res) => {
   try {
     const { user } = req
     const { apiKey, secretKey } = req.body;
@@ -14,11 +14,12 @@ router.post('/binance/integration', [passport.authenticate("jwt", { session: fal
     const savedUser = await user.save();
     res.json(savedUser);
   } catch (error) {
+    console.log(error)
     res.status(500).send('Something went wrong')
   }
 });
 
-router.get('/binance/depositHistory', [passport.authenticate("jwt", { session: false }), binanceAuth], async (req, res) => {
+router.get('/binance/depositHistory', [passport.authenticate('jwt', { session: false }), binanceAuth], async (req, res) => {
   try {
     const { start, end } = req.query
     let { binanceDefaultAxiosConfig: binanceAxiosConfig } = req;
@@ -39,12 +40,13 @@ router.get('/binance/depositHistory', [passport.authenticate("jwt", { session: f
     })
     res.json(result)
   } catch (error) {
+    console.log(error)
     const message = error && error.response && error.response.data && error.response.data.msg ? error.response.data.msg : 'Unknown error'
     res.status(500).send(message)
   }
 })
 
-router.get('/binance/withdrawHistory', [passport.authenticate("jwt", { session: false }), binanceAuth], async (req, res) => {
+router.get('/binance/withdrawHistory', [passport.authenticate('jwt', { session: false }), binanceAuth], async (req, res) => {
   try {
     let { binanceDefaultAxiosConfig: binanceAxiosConfig } = req;
     const { secretKey: apiSecret } = req.user.binanceKeys
@@ -62,7 +64,7 @@ router.get('/binance/withdrawHistory', [passport.authenticate("jwt", { session: 
   }
 })
 
-router.get('/binance/address', [passport.authenticate("jwt", { session: false }), binanceAuth], async (req, res) => {
+router.get('/binance/address', [passport.authenticate('jwt', { session: false }), binanceAuth], async (req, res) => {
   try {
     let { binanceDefaultAxiosConfig: binanceAxiosConfig } = req;
     const { coin, network } = req.query;
@@ -74,11 +76,12 @@ router.get('/binance/address', [passport.authenticate("jwt", { session: false })
     const response = await axios(binanceAxiosConfig);
     res.json(response.data)
   } catch (error) {
+    console.log(error)
     res.status(500).send(error.message)
   }
 })
 
-router.get('/binance/getcoins', [passport.authenticate("jwt", { session: false }), binanceAuth], async (req, res) => {
+router.get('/binance/getcoins', [passport.authenticate('jwt', { session: false }), binanceAuth], async (req, res) => {
   try {
     let { binanceDefaultAxiosConfig: binanceAxiosConfig } = req;
     const { secretKey: apiSecret } = req.user.binanceKeys
@@ -109,11 +112,13 @@ router.get('/binance/getcoins', [passport.authenticate("jwt", { session: false }
       }))
     res.json(result)
   } catch (error) {
+    console.log(error)
     const message = error && error.response && error.response.data && error.response.data.msg ? error.response.data.msg : 'Unknown error'
-    res.status(500).send(message)  }
+    res.status(500).send(message)
+  }
 })
 
-router.delete('/binance/integration', [passport.authenticate("jwt", { session: false }),], async (req, res) => {
+router.delete('/binance/integration', [passport.authenticate('jwt', { session: false }),], async (req, res) => {
   try {
     const user = req.user
     delete user.binanceKeys

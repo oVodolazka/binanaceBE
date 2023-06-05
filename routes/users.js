@@ -70,10 +70,52 @@ router.post('/users/login', async (req, res) => {
     }
 });
 
-router.get('/users/me', [passport.authenticate("jwt", { session: false })], async (req, res) => {
+router.get('/users/me', [passport.authenticate('jwt', { session: false })], async (req, res) => {
     const binanceKeysExist = !!(req.user.binanceKeys.apiKey && req.user.binanceKeys.secretKey)
     const newUser = _.pick(req.user, ['email', 'name']);
     res.json({ user: { ...newUser, binanceKeysExist } })
+});
+
+router.get('/login/success', async (req, res) => {
+    const { name, email } = req.user._json
+    const user = await User.findOne({ email })
+    if (user) {
+        const id = user._id.toString()
+        const payload = {
+            id,
+            name
+        };
+        const token = await jwt.sign(payload, keys.secretOrKey, { expiresIn: 31556926 });
+        res.status(200).json({
+            token: 'Bearer ' + token
+        })
+    }
+    else {
+        const newUser = new User({
+            email,
+            name,
+        });
+        const savedUser = await newUser.save();
+        const payload = {
+            id: savedUser.id,
+            name: savedUser.name
+        };
+        const token = await jwt.sign(payload, keys.secretOrKey, { expiresIn: 31556926 });
+        res.status(200).json({
+            token: 'Bearer ' + token
+        });
+    }
+})
+
+router.get('/login/failed', (res) => {
+    res.status(401).json({
+        success: false,
+        message: 'failure',
+    });
+});
+
+router.get('/logout', (req) => {
+    req.logout();
 });
 
 module.exports = router;
