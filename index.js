@@ -7,9 +7,10 @@ const passport = require('passport');
 const cookieSession = require('cookie-session');
 const cors = require('cors');
 require('./config/passport');
+require('dotenv').config();
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT;
 
 app.use(bodyParser.json());
 
@@ -31,7 +32,7 @@ app.use(
   })
 );
 
-app.use('/', routes); 
+app.use('/', routes);
 
 mongoose.connect(config.url)
   .then(() => {

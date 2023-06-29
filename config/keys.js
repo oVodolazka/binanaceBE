@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 module.exports = {
-    secretOrKey: 'NP0XDkWm7h'
+    secretOrKey: process.env.SECRETORKEY
 };
