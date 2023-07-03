@@ -19,7 +19,6 @@ const { firebaseConfig } = require('../config/firebaseConfig');
 
 firebase.initializeApp(firebaseConfig);
 const firebaseStorage = getStorage();
-// const { db } = require('../models/User');
 const fsPromises = require('fs/promises');
 const fs = require('fs');
 
