@@ -4,12 +4,12 @@ const mongoose = require('mongoose');
 const User = mongoose.model('users');
 const keys = require('../config/keys');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+require('dotenv').config();
 
 const opts = {};
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
 opts.secretOrKey = keys.secretOrKey;
-const GOOGLE_CLIENT_ID = '72871712135-gc9vltdr2au8n7tgdlogu4jbiq9knbf3.apps.googleusercontent.com'
-const GOOGLE_CLIENT_SECRET = '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'
+const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = process.env;
 
 const passportInitStrategies = passport => {
     passport.use(

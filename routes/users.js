@@ -1,4 +1,4 @@
-const express = require('express')
+const express = require('express');
 const defaultRoute = express.Router();
 defaultRoute.get('/users', (req, res) => {
     res.send(`What's up USERS?!`);
@@ -10,7 +10,28 @@ const jwt = require('jsonwebtoken');
 const keys = require('../config/keys');
 const User = require('../models/User');
 const passport = require('passport');
-const _ = require('lodash')
+const _ = require('lodash');
+const multer = require('multer');
+const Jimp = require("jimp");
+const firebase = require("firebase/app");
+const { getStorage, ref, getDownloadURL, uploadBytesResumable, deleteObject } = require("firebase/storage");
+const { firebaseConfig } = require('../config/firebaseConfig');
+
+firebase.initializeApp(firebaseConfig);
+const firebaseStorage = getStorage();
+const fsPromises = require('fs/promises');
+const fs = require('fs');
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'images/')
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.originalname)
+    },
+});
+
+const upload = multer({ storage: storage });
 
 router.post('/users/register', async (req, res) => {
     try {
@@ -23,6 +44,7 @@ router.post('/users/register', async (req, res) => {
                 email: req.body.email,
                 password: req.body.password,
                 name: req.body.name,
+                avatar: ''
             });
             const salt = await bcrypt.genSalt(10);
             const hash = await bcrypt.hash(newUser.password, salt);
@@ -71,13 +93,14 @@ router.post('/users/login', async (req, res) => {
 });
 
 router.get('/users/me', [passport.authenticate('jwt', { session: false })], async (req, res) => {
+    const user = req.user.toObject();
     const binanceKeysExist = !!(req.user.binanceKeys.apiKey && req.user.binanceKeys.secretKey)
-    const newUser = _.pick(req.user, ['email', 'name']);
+    const newUser = _.pick(user, ['email', 'name', 'avatar', '_id']);
     res.json({ user: { ...newUser, binanceKeysExist } })
 });
 
 router.get('/login/success', async (req, res) => {
-    const { name, email } = req.user._json
+    const { name, email, picture: avatar } = req.user._json
     const user = await User.findOne({ email })
     if (user) {
         const id = user._id.toString()
@@ -94,6 +117,7 @@ router.get('/login/success', async (req, res) => {
         const newUser = new User({
             email,
             name,
+            avatar
         });
         const savedUser = await newUser.save();
         const payload = {
@@ -114,8 +138,56 @@ router.get('/login/failed', (res) => {
     });
 });
 
-router.get('/logout', (req) => {
-    req.logout();
-});
+
+router.put('/user-avatar', upload.single('file'), async (req, res) => {
+    const { email, id } = req.body
+    const path = `images/${req.file.filename}`
+    Jimp.read(path, async (err, img) => {
+        if (err) throw err;
+        const size = Math.min(img.getHeight(), img.getWidth());
+        await new Promise((resolve, reject) => {
+            img.crop(30, 0, size, size).write(path, (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+        const storageRef = ref(firebaseStorage, `files/${id}`);
+        const fileData = await fsPromises.readFile(path);
+        const uploadTask = uploadBytesResumable(storageRef, fileData);
+        uploadTask.on(
+            'state_changed',
+            null,
+            (err) => console.log(err),
+            async () => {
+                try {
+                    const url = await getDownloadURL(uploadTask.snapshot.ref);
+                    const user = await User.findOne({ email });
+                    user.avatar = url;
+                    await user.save()
+                    res.jsonp({ status: 200, url });
+                    fs.unlinkSync(path);
+                } catch (err) {
+                    console.log(err);
+                }
+            }
+        );
+    })
+
+})
+
+router.delete('/user-avatar', async (req, res) => {
+    const { id, email } = req.query
+    try {
+        const desertRef = ref(firebaseStorage, `files/${id}`);
+        await deleteObject(desertRef);
+        const user = await User.findOne({ email });
+        user.avatar = '';
+        await user.save()
+        res.jsonp({ status: 200 });
+    } catch (error) {
+        console.log(error);
+    }
+})
+
 
 module.exports = router;
