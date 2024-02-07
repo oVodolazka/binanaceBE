@@ -1,10 +1,4 @@
 const express = require('express');
-const defaultRoute = express.Router();
-defaultRoute.get('/users', (req, res) => {
-    res.send(`What's up USERS?!`);
-});
-
-const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const keys = require('../config/keys');
@@ -16,6 +10,8 @@ const Jimp = require("jimp");
 const firebase = require("firebase/app");
 const { getStorage, ref, getDownloadURL, uploadBytesResumable, deleteObject } = require("firebase/storage");
 const { firebaseConfig } = require('../config/firebaseConfig');
+
+const router = express.Router();
 
 firebase.initializeApp(firebaseConfig);
 const firebaseStorage = getStorage();
